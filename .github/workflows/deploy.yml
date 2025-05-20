@@ -40,7 +40,7 @@ jobs:
             pip install -r /home/digievom/domains/api-manana.digievo.mg/public_html/pharma/requirements.txt --upgrade
             
             # Collecter les fichiers statiques
-            python/home/digievom/domains/api-manana.digievo.mg/public_html/pharma/manage.py collectstatic --noinput
+            python /home/digievom/domains/api-manana.digievo.mg/public_html/pharma/manage.py collectstatic --noinput
 
       - name: Deploy to FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
