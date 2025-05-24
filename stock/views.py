@@ -280,7 +280,7 @@ class SellBulkProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                     )
                     
                     produit.save()
-                    prix_gros += qteGrosVente * produit.prix_gros
+                    prix_gros += int(qteGrosVente * new_prix_vente) if new_prix_vente else  int(qteGrosVente * produit.prix_gros)
                     
                     venteInstancList.append(venteInstance)
                 
