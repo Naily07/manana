@@ -106,7 +106,7 @@ class Transaction(models.Model):
 
     def __str__(self) -> str:
         return self.type_transaction
-
+   
     class Meta():
         abstract = True
         
@@ -156,6 +156,12 @@ class FilAttenteProduct(models.Model):
             raise ValueError("Fil d'attente inexistant")
 
 class VenteProduct(Transaction):
+    prix_vente = models.DecimalField(max_digits=10, decimal_places=0, blank=True)
     facture = models.ForeignKey(Facture, on_delete=models.CASCADE, related_name="%(class)s_related", null=True)
     fil_attente = models.ForeignKey(FilAttenteProduct, on_delete=models.SET_NULL, related_name="%(class)s_related", null=True)
     
+    def save(self, *args, **kwargs):
+        print("save called with args:", args, "kwargs:", kwargs)
+        if not self.prix_vente and self.product:
+            self.prix_vente = self.product.prix_gros
+        return super().save(*args, **kwargs)

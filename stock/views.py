@@ -243,6 +243,7 @@ class SellBulkProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                 for vente in venteList:
                     print("Vente", vente)
                     product_id = vente['product_id']
+                    new_prix_vente = vente['new_prix_vente']
                     try:
                         produit = Product.objects.get(id=product_id)
                     except Product.DoesNotExist:
@@ -268,10 +269,13 @@ class SellBulkProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                     venteInstance = VenteProduct(
                         product=produit,
                         # qte_unit_transaction=qteUnitVente,
+                        prix_vente = new_prix_vente if new_prix_vente else produit.prix_gros,
                         qte_gros_transaction=qteGrosVente,
                         # qte_detail_transaction=qteDetailVente,
                         type_transaction="Vente",
-                        prix_total=(int(qteGrosVente * produit.prix_gros)),
+                        prix_total=(int(qteGrosVente * new_prix_vente) if new_prix_vente
+                                    else
+                                        int(qteGrosVente * produit.prix_gros)),
                         facture=facture,
                     )
                     

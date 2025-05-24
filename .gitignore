@@ -1,5 +1,6 @@
 .env
 build.sh
+scriptVenteProductprix.py
 __pycache__/
 *.pyc
 **/__pycache__/
