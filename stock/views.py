@@ -343,6 +343,7 @@ class CreateFilAttenteProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                 for vente in venteList:
                     print("Vente", vente)
                     product_id = vente['product_id']
+                    new_prix_vente = vente['new_prix_vente']
                     try:
                         produit = Product.objects.get(id=product_id)
                     except Product.DoesNotExist:
@@ -354,15 +355,9 @@ class CreateFilAttenteProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                         return Response({"message": "Erreur de quantité de vente"}, status=status.HTTP_400_BAD_REQUEST)
                     
                     qteGrosStock = produit.qte_gros
-                    restDetail = 0
-                    restUnit = 0
-                    dividandDetail = 0
-                    dividandUnit = 0
-                    #CONVERSION
                     
                     #Condition
                     if qteGrosStock >= qteGrosVente:
-                        
                         if qteGrosStock < qteGrosVente:
                             return Response({"message": "Stock insuffisant"}, status=status.HTTP_400_BAD_REQUEST)
                         qteGrosStock -= qteGrosVente
@@ -370,17 +365,19 @@ class CreateFilAttenteProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                         return Response({"message": 'La quantité est invalide ou dépasse le stock'}, status=status.HTTP_400_BAD_REQUEST)
                     
                     produit.qte_gros = qteGrosStock
-
                     venteInstance = VenteProduct(
                         product=produit,
                         qte_gros_transaction=qteGrosVente,
+                        prix_vente = new_prix_vente if new_prix_vente else produit.prix_gros,
                         type_transaction="Attente",
-                        prix_total=(int(qteGrosVente * produit.prix_gros)),
+                        prix_total=(int(qteGrosVente * new_prix_vente) if new_prix_vente
+                                    else
+                                        int(qteGrosVente * produit.prix_gros)),
                         fil_attente=filAttente,
                     )
                     
                     produit.save()
-                    prix_gros += qteGrosVente * produit.prix_gros
+                    prix_gros += int(qteGrosVente * new_prix_vente) if new_prix_vente else  int(qteGrosVente * produit.prix_gros)
                     
                     venteInstancList.append(venteInstance)
                 
@@ -389,14 +386,13 @@ class CreateFilAttenteProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                 filAttente.client = client
                 filAttente.save()
 
-                print("VenteList", venteInstancList)
+                # print("VenteList", venteInstancList)
                 
                 if len(venteInstancList) > 0:
                     print("ATO", filAttente.id)
                     VenteProduct.objects.bulk_create(venteInstancList)
                     # filDatas = FilAttenteProduct.objects.filter(id__iexact = filAttente.id).first()
                     filAttentesSerialiser = FilAttenteSerialiser(filAttente).data
-                    # print("Return", filAttentesSerialiser)
                     
                     return Response(filAttentesSerialiser, status=status.HTTP_201_CREATED)
                 else:
