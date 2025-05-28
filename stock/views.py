@@ -470,7 +470,8 @@ class UpdateFilAttente(VendeurEditorMixin, generics.UpdateAPIView):
             newPrixGrosVenteTotal = 0
             with transaction.atomic():
                 for vente in datas:
-                    productId = vente['product_id']
+                    productId = vente.get('product_id', None)
+                    new_prix_vente = vente.get('new_prix_vente', None)
                     if productId :
                         try:
                             produit = Product.objects.get(id=productId)
@@ -495,15 +496,16 @@ class UpdateFilAttente(VendeurEditorMixin, generics.UpdateAPIView):
 
                         newVenteInstance = VenteProduct(
                             product=produit,
-                            qte_gros_transaction=qteGrosVente,
+                            prix_vente = new_prix_vente if new_prix_vente else produit.prix_gros,
                             type_transaction="Attente",
-                            prix_total=(int(qteGrosVente * produit.prix_gros)),
+                            prix_total=(int(qteGrosVente * new_prix_vente) if new_prix_vente
+                                    else
+                                        int(qteGrosVente * produit.prix_gros)),
                             fil_attente=filAttente,
                         )
                         
                         produit.save()
-                        newPrixGrosVenteTotal += qteGrosVente * produit.prix_gros
-                        
+                        newPrixGrosVenteTotal += int(qteGrosVente * new_prix_vente) if new_prix_vente else  int(qteGrosVente * produit.prix_gros)
                         newVenteInstanceList.append(newVenteInstance)
 
                     else :
@@ -516,12 +518,15 @@ class UpdateFilAttente(VendeurEditorMixin, generics.UpdateAPIView):
                         venteInstance.qte_gros_transaction = newQteGros
                         product.qte_gros -= newQteGros
                         product.save()
-                        venteInstance.prix_total = (newQteGros * product.prix_gros)
+                        venteInstance.prix_vente = new_prix_vente if new_prix_vente else product.prix_gros,
+                        venteInstance.prix_total = (int(newQteGros * new_prix_vente) if new_prix_vente
+                                                    else
+                                                    int(newQteGros * product.prix_gros))
                         venteInstanceList.append(venteInstance)
                 #Zero s'il n'y avait pas d'ajout de produit
                 filAttente.prix_total =  newPrixGrosVenteTotal
                 if len(venteInstanceList) > 0:
-                    VenteProduct.objects.bulk_update(venteInstanceList, fields=["qte_gros_transaction",                                                                 "date", "prix_total"])
+                    VenteProduct.objects.bulk_update(venteInstanceList, fields=["qte_gros_transaction", "date", "prix_total"])
                 for vente in venteInstanceList:
                     filAttente.prix_total += vente.prix_total
                 if prixRestant:
