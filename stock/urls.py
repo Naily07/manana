@@ -32,6 +32,8 @@ urlpatterns = [
     path('create-trosa', CreateTrosa.as_view(), name='vente-produit'),
     path('delete-trosa/<int:pk>', DeleteTrosa.as_view(), name='vente-produit'),
     path('update-trosa/<int:pk>', UpdateTrosa.as_view(), name='vente-produit'),
+    
+    path('delete-vente/<int:pk>', DeleteVente.as_view(), name='vente-produit'),
 
     path('list-fournisseur', ListFournisseur.as_view(), name='vente-produit'),
     path('update-fournisseur', UpdateFournisserur.as_view(), name='update-fournisseur'),

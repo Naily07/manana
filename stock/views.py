@@ -343,7 +343,7 @@ class CreateFilAttenteProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                 for vente in venteList:
                     print("Vente", vente)
                     product_id = vente['product_id']
-                    new_prix_vente = vente['new_prix_vente']
+                    new_prix_vente = vente.get('new_prix_vente', None)
                     try:
                         produit = Product.objects.get(id=product_id)
                     except Product.DoesNotExist:
@@ -498,6 +498,7 @@ class UpdateFilAttente(VendeurEditorMixin, generics.UpdateAPIView):
                             product=produit,
                             prix_vente = new_prix_vente if new_prix_vente else produit.prix_gros,
                             type_transaction="Attente",
+                            qte_gros_transaction = qteGrosVente,
                             prix_total=(int(qteGrosVente * new_prix_vente) if new_prix_vente
                                     else
                                         int(qteGrosVente * produit.prix_gros)),
@@ -552,6 +553,41 @@ class ListVente(generics.ListAPIView):
     queryset = VenteProduct.objects.all()
     serializer_class = VenteProductSerializer
 
+class DeleteVente(VendeurEditorMixin, generics.DestroyAPIView):
+    queryset = VenteProduct.objects.all()
+    serializer_class = VenteProductSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        instance : VenteProduct = self.get_object()
+        try:
+            with transaction.atomic():
+                product : Product = instance.product
+                product.qte_gros += instance.qte_gros_transaction
+                product.save()
+                facture : Facture = instance.facture
+                filAttente = instance.fil_attente
+                print("Insatance", instance.id)
+                self.perform_destroy(instance)
+
+                if facture:
+                    venteList = facture.venteproduct_related.all()
+                    facture.prix_total = 0
+                    for vente  in venteList:
+                        facture.prix_total += vente.qte_gros_transaction * vente.prix_vente
+                    facture.save()
+                elif filAttente:
+                    venteList = filAttente.venteproduct_related.all()
+                    filAttente.prix_total = 0
+                    for vente  in venteList:
+                        filAttente.prix_total += vente.qte_gros_transaction * vente.prix_vente
+                    filAttente.save()
+
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except AttributeError as e:
+            return Response({"message": f"Erreur d'attribut{e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            return Response({"message" : f"Error ${e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 class ListTransactions(GestionnaireEditorMixin, generics.ListAPIView):
     queryset = AjoutStock.objects.all()
     serializer_class = AjoutStockSerialiser
