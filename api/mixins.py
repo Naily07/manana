@@ -28,9 +28,9 @@ class ProductQsField(GenericAPIView):
             if etat == "expired":
                 print("exp")
                 today = timezone.now().date()
-                three_months_from_now = today + timedelta(days=90)
-                print(three_months_from_now)
-                qs = Product.objects.filter(date_peremption__lte=three_months_from_now, date_peremption__gte = timezone.now())
+                seven_months_from_now = today + timedelta(days=210)
+                # print(seven_months_from_now)
+                qs = Product.objects.filter(date_peremption__lte=seven_months_from_now, date_peremption__gte = timezone.now())
                 return qs
             elif etat == "rupture" :
                 print("RUPTEE")
