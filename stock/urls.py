@@ -11,8 +11,9 @@ urlpatterns = [
     path('update-product/<int:pk>', UpdateProduct.as_view(), name='create-stock'),
 
     path('list-facture', ListFacture.as_view(), name='create-stock'),
-    path('delete-facture/<int:pk>', DeleteFacture.as_view(), name='create-stock'),
+    path('delete-facture/<int:pk>', DemandeAnnulationFactureView.as_view(), name='create-stock'),
     path('update-facture/<int:pk>', UpdateFacture.as_view(), name='update-facture'),
+    path('demande-annulation-facture/<int:pk>', DemandeAnnulationFactureView.as_view(), name='update-facture'),
     path('cancel-facture/<int:pk>', CancelFacture.as_view(), name='vente'),
 
     #Vendeur
@@ -33,6 +34,7 @@ urlpatterns = [
     path('delete-trosa/<int:pk>', DeleteTrosa.as_view(), name='vente-produit'),
     path('update-trosa/<int:pk>', UpdateTrosa.as_view(), name='vente-produit'),
     
+    path('list-vente', ListVente.as_view(), name='vente-produit'),
     path('delete-vente/<int:pk>', DeleteVente.as_view(), name='vente-produit'),
 
     path('list-fournisseur', ListFournisseur.as_view(), name='vente-produit'),

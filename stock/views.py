@@ -214,7 +214,7 @@ class SellBulkProduct(VendeurEditorMixin, generics.ListCreateAPIView):
         datas = request.data
         client = ""
         user = request.user
-        prixRestant = 0
+        montantPaye = 0
         datasCopy = datas.copy()
         
         for item in datasCopy:
@@ -222,8 +222,8 @@ class SellBulkProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                 if key == "client":
                     client = value
                     datas.remove(item)
-                if key == "prix_restant":
-                    prixRestant = value
+                if key == "montantPaye":
+                    montantPaye = value
                     datas.remove(item)
                     
         venteList = datas
@@ -234,6 +234,7 @@ class SellBulkProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                 facture = Facture(
                     prix_total=0,
                     prix_restant=0,
+                    montant_paye = montantPaye,
                     owner=user
                 )
                 # prix_unit = 0
@@ -242,8 +243,8 @@ class SellBulkProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                 
                 for vente in venteList:
                     print("Vente", vente)
-                    product_id = vente['product_id']
-                    new_prix_vente = vente['new_prix_vente']
+                    product_id = vente.get('product_id', None)
+                    new_prix_vente = vente.get('new_prix_vente', None)
                     try:
                         produit = Product.objects.get(id=product_id)
                     except Product.DoesNotExist:
@@ -284,7 +285,7 @@ class SellBulkProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                     
                     venteInstancList.append(venteInstance)
                 
-                facture.prix_restant = prixRestant
+                facture.prix_restant = prix_gros - montantPaye
                 facture.prix_total =  prix_gros 
                 facture.client = client
                 facture.save()
@@ -315,7 +316,7 @@ class CreateFilAttenteProduct(VendeurEditorMixin, generics.ListCreateAPIView):
         datas = request.data
         client = ""
         user = request.user
-        prixRestant = 0
+        montantPaye = 0
         datasCopy = datas.copy()
         
         for item in datasCopy:
@@ -323,8 +324,8 @@ class CreateFilAttenteProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                 if key == "client":
                     client = value
                     datas.remove(item)
-                if key == "prix_restant":
-                    prixRestant = value
+                if key == "montantPaye":
+                    montantPaye = value
                     datas.remove(item)
                     
         venteList = datas
@@ -335,6 +336,7 @@ class CreateFilAttenteProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                 filAttente = FilAttenteProduct(
                     prix_total=0,
                     prix_restant=0,
+                    montantPaye = montantPaye,
                     owner=user
                 )
                 filAttente.save()
@@ -381,7 +383,7 @@ class CreateFilAttenteProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                     
                     venteInstancList.append(venteInstance)
                 
-                filAttente.prix_restant = prixRestant
+                filAttente.prix_restant = prix_gros - montantPaye
                 filAttente.prix_total =  prix_gros
                 filAttente.client = client
                 filAttente.save()
@@ -605,7 +607,7 @@ class RetrieveTransactions(GestionnaireEditorMixin, generics.RetrieveAPIView):
         return Response(ajoutsersialiser)
 
 ##Mbola ts vita
-class CancelFacture(VendeurEditorMixin, generics.RetrieveDestroyAPIView):
+class CancelFacture(GestionnaireEditorMixin, generics.RetrieveDestroyAPIView):
     queryset = Facture.objects.all()
     serializer_class = FactureSerialiser
     lookup_field = 'pk'
@@ -614,30 +616,40 @@ class CancelFacture(VendeurEditorMixin, generics.RetrieveDestroyAPIView):
         instance = self.get_object()
         print("Object to delete", instance)
         listVente = instance.venteproduct_related.all()
-        with transaction.atomic():
-            try:
-                for vente in listVente:
-                    product = Product.objects.get(id = vente.product.id)
+        if instance.demande_annulation:
+            with transaction.atomic():
+                try:
+                    for vente in listVente:
+                        product = Product.objects.get(id = vente.product.id)
 
-                    qte_gros_cancel = vente.qte_gros_transaction
-                    product.qte_gros += qte_gros_cancel
-                    product.save()
-                    
-                self.perform_destroy(instance)
-                return Response(status=status.HTTP_200_OK, data=ProductSerialiser(product).data)
-            except Product.DoesNotExist:
-                return Response({"message": "Produit introuvable"}, status=status.HTTP_404_NOT_FOUND)
-            except Exception as e:
-                return Response({"message": f"Erreur Serveur {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                        qte_gros_cancel = vente.qte_gros_transaction
+                        product.qte_gros += qte_gros_cancel
+                        product.save()
+                        
+                    self.perform_destroy(instance)
+                    return Response(status=status.HTTP_200_OK, data=ProductSerialiser(product).data)
+                except Product.DoesNotExist:
+                    return Response({"message": "Produit introuvable"}, status=status.HTTP_404_NOT_FOUND)
+                except Exception as e:
+                    return Response({"message": f"Erreur Serveur {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response({"message": "Impossible d'annuler la facture"}, status=status.HTTP_400_BAD_REQUEST)
+
     
 class ListFacture(generics.ListAPIView, userFactureQs):
     queryset = Facture.objects.all()
     serializer_class = FactureSerialiser
     # permission_classes = [IsAuthenticated, ]
     
-class DeleteFacture(generics.DestroyAPIView):
+class DemandeAnnulationFactureView(VendeurEditorMixin, generics.UpdateAPIView):
     queryset = Facture.objects.all()
     serializer_class = FactureSerialiser
+
+    def patch(self, request, *args, **kwargs):
+        facture = self.get_object()
+        facture.demande_annulation = True
+        facture.save()
+        return Response({"detail": "Demande d'annulation envoyée."})
 
 class UpdateFacture(generics.RetrieveUpdateAPIView):
     queryset = Facture.objects.all()

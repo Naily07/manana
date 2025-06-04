@@ -118,7 +118,6 @@ class ProductSerialiser(serializers.ModelSerializer):
         except UniqueViolation as e:
             raise serializers.ValidationError({"message": "Un produit avec cette combinaison de fournisseur, marque et détail existe déjà."})
         except IntegrityError as e:
-            print("eXX", e)
             raise serializers.ValidationError({"message": f"Erreur d'intégrité des données."})
         except Exception as e:
             raise serializers.ValidationError({"message": f"Une erreur inattendue s'est produite: {str(e)}"})
@@ -178,6 +177,8 @@ class ReglementSerializer(serializers.ModelSerializer):
 class FactureSerialiser(serializers.ModelSerializer):
     prix_total = serializers.DecimalField(max_digits=10, decimal_places=0)
     prix_restant = serializers.DecimalField(max_digits=10, decimal_places=0)
+    montant_paye = serializers.DecimalField(max_digits=10, decimal_places=0, required = False)
+    date_payement = serializers.DateField(required = False)
     ventes = serializers.SerializerMethodField(read_only = True)
     client = serializers.CharField()
     date = serializers.SerializerMethodField(read_only = True)
@@ -185,7 +186,8 @@ class FactureSerialiser(serializers.ModelSerializer):
     reglements = serializers.SerializerMethodField(read_only = True)
     class Meta:
         model = Facture
-        fields = ['pk', 'prix_total', 'prix_restant', 'ventes', 'client', 'date', 'owner', 'reglements']
+        fields = ['pk', 'prix_total', 'prix_restant', 'ventes', 'client', 'date', 'owner', 'reglements', 
+                  'montant_paye', 'date_payement', 'demande_annulation']
 
     def get_ventes(self, obj):
         facture = obj
@@ -237,6 +239,7 @@ class TrosaSerialiser(serializers.ModelSerializer):
     owner = serializers.CharField(required = True)
     date = serializers.DateField(read_only = True)
     montant = serializers.DecimalField(max_digits=10, decimal_places=0, read_only = True)
+    date_payement = serializers.DecimalField(max_digits=10, decimal_places=0)
     montant_restant = serializers.DecimalField(max_digits=10, decimal_places=0)
     contact = serializers.CharField(allow_blank = True)
     adress = serializers.CharField(allow_blank = True)
@@ -244,7 +247,7 @@ class TrosaSerialiser(serializers.ModelSerializer):
 
     class Meta:
         model = Trosa
-        fields = ["pk", 'owner', 'date', 'montant', 'montant_restant', 'adress', 'contact', "reglements"]
+        fields = ["pk", 'owner', 'date', 'montant', 'montant_restant', 'adress', 'contact', "reglements", "date_payement"]
     
     def create(self, validated_data):
         trosa = Trosa.objects.create(montant = validated_data.get('montant_restant'), **validated_data)
