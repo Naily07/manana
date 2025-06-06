@@ -123,6 +123,9 @@ class AjoutStock(Transaction):
 
 class FilAttenteProduct(models.Model):
     date = models.DateTimeField(auto_now_add=True, null = True)
+    date_payement = models.DateField(blank=True, default=None, null=True)
+    montant_paye = models.DecimalField(max_digits=10, decimal_places=0, default=0)
+    remarque = models.CharField(max_length=255, default="", blank=True)
     prix_total = models.DecimalField(max_digits=10, decimal_places=0)
     prix_restant = models.DecimalField(max_digits=10, decimal_places=0)
     client = models.CharField(max_length=20, default="", blank=True)
@@ -146,6 +149,9 @@ class FilAttenteProduct(models.Model):
             facture = Facture(
                 prix_total = filAttente.prix_total,
                 prix_restant = filAttente.prix_restant,
+                montant_paye = filAttente.montant_paye,
+                remarque = filAttente.remarque,
+                date_payement = filAttente.date_payement,
                 client = filAttente.client,
                 owner = filAttente.owner
             )

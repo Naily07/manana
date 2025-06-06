@@ -212,21 +212,14 @@ class SellBulkProduct(VendeurEditorMixin, generics.ListCreateAPIView):
     
     def post(self, request):
         datas = request.data
-        client = ""
         user = request.user
-        montantPaye = 0
-        datasCopy = datas.copy()
-        
-        for item in datasCopy:
-            for key, value in item.items():
-                if key == "client":
-                    client = value
-                    datas.remove(item)
-                if key == "montantPaye":
-                    montantPaye = value
-                    datas.remove(item)
+            
+        client = datas.get('client', "")
+        montantPaye = datas.get('montantPaye', None)
+        remarque = datas.get('remarque', "")
+        datePayement = datas.get('datePayement', None)
                     
-        venteList = datas
+        venteList = datas.get("ventes", None)
         venteInstancList = []
         
         try:
@@ -240,7 +233,8 @@ class SellBulkProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                 # prix_unit = 0
                 prix_gros = 0
                 # prix_detail = 0
-                
+                if not venteList:
+                    return Response({"message" : "Aucune vente validé"}, status=status.HTTP_400_BAD_REQUEST)
                 for vente in venteList:
                     print("Vente", vente)
                     product_id = vente.get('product_id', None)
@@ -286,6 +280,8 @@ class SellBulkProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                     venteInstancList.append(venteInstance)
                 
                 facture.prix_restant = prix_gros - montantPaye
+                facture.date_payement = datePayement
+                facture.remarque = remarque
                 facture.prix_total =  prix_gros 
                 facture.client = client
                 facture.save()
@@ -314,21 +310,14 @@ class CreateFilAttenteProduct(VendeurEditorMixin, generics.ListCreateAPIView):
 
     def post(self, request):
         datas = request.data
-        client = ""
         user = request.user
-        montantPaye = 0
-        datasCopy = datas.copy()
-        
-        for item in datasCopy:
-            for key, value in item.items():
-                if key == "client":
-                    client = value
-                    datas.remove(item)
-                if key == "montantPaye":
-                    montantPaye = value
-                    datas.remove(item)
+            
+        client = datas.get('client', "")
+        montantPaye = datas.get('montantPaye', None)
+        remarque = datas.get('remarque', "")
+        datePayement = datas.get('datePayement', None)
                     
-        venteList = datas
+        venteList = datas.get("ventes", None)
         venteInstancList = []
         
         try:
@@ -336,12 +325,13 @@ class CreateFilAttenteProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                 filAttente = FilAttenteProduct(
                     prix_total=0,
                     prix_restant=0,
-                    montantPaye = montantPaye,
+                    montant_paye = montantPaye,
                     owner=user
                 )
                 filAttente.save()
                 prix_gros = 0
-                
+                if not venteList:
+                    return Response({"message" : "Aucune vente validé"}, status=status.HTTP_400_BAD_REQUEST)
                 for vente in venteList:
                     print("Vente", vente)
                     product_id = vente['product_id']
@@ -384,6 +374,8 @@ class CreateFilAttenteProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                     venteInstancList.append(venteInstance)
                 
                 filAttente.prix_restant = prix_gros - montantPaye
+                filAttente.date_payement = datePayement
+                filAttente.remarque = remarque
                 filAttente.prix_total =  prix_gros
                 filAttente.client = client
                 filAttente.save()

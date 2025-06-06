@@ -212,6 +212,7 @@ class FilAttenteSerialiser(serializers.ModelSerializer):
     ventes = serializers.SerializerMethodField(read_only = True)
     client = serializers.CharField()
     date = serializers.SerializerMethodField(read_only = True)
+    prix_restant = serializers.DecimalField(max_digits=10, decimal_places=0, read_only = True)
     owner = serializers.SerializerMethodField(read_only = True)
     class Meta:
         model = FilAttenteProduct
