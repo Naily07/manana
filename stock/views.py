@@ -608,24 +608,24 @@ class CancelFacture(GestionnaireEditorMixin, generics.RetrieveDestroyAPIView):
         instance = self.get_object()
         print("Object to delete", instance)
         listVente = instance.venteproduct_related.all()
-        if instance.demande_annulation:
-            with transaction.atomic():
-                try:
-                    for vente in listVente:
-                        product = Product.objects.get(id = vente.product.id)
+        # if instance.demande_annulation:
+        with transaction.atomic():
+            try:
+                for vente in listVente:
+                    product = Product.objects.get(id = vente.product.id)
 
-                        qte_gros_cancel = vente.qte_gros_transaction
-                        product.qte_gros += qte_gros_cancel
-                        product.save()
-                        
-                    self.perform_destroy(instance)
-                    return Response(status=status.HTTP_200_OK, data=ProductSerialiser(product).data)
-                except Product.DoesNotExist:
-                    return Response({"message": "Produit introuvable"}, status=status.HTTP_404_NOT_FOUND)
-                except Exception as e:
-                    return Response({"message": f"Erreur Serveur {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            return Response({"message": "Impossible d'annuler la facture"}, status=status.HTTP_400_BAD_REQUEST)
+                    qte_gros_cancel = vente.qte_gros_transaction
+                    product.qte_gros += qte_gros_cancel
+                    product.save()
+                    
+                self.perform_destroy(instance)
+                return Response(status=status.HTTP_200_OK, data=ProductSerialiser(product).data)
+            except Product.DoesNotExist:
+                return Response({"message": "Produit introuvable"}, status=status.HTTP_404_NOT_FOUND)
+            except Exception as e:
+                return Response({"message": f"Erreur Serveur {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        # else:
+        #     return Response({"message": "Impossible d'annuler la facture"}, status=status.HTTP_400_BAD_REQUEST)
 
     
 class ListFacture(generics.ListAPIView, userFactureQs):
