@@ -187,7 +187,7 @@ class FactureSerialiser(serializers.ModelSerializer):
     class Meta:
         model = Facture
         fields = ['pk', 'prix_total', 'prix_restant', 'ventes', 'client', 'date', 'owner', 'reglements', 
-                  'montant_paye', 'date_payement', 'demande_annulation']
+                  'montant_paye', 'date_payement', 'demande_annulation', 'remarque']
 
     def get_ventes(self, obj):
         facture = obj
