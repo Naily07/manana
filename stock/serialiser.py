@@ -240,10 +240,10 @@ class TrosaSerialiser(serializers.ModelSerializer):
     owner = serializers.CharField(required = True)
     date = serializers.DateField(read_only = True)
     montant = serializers.DecimalField(max_digits=10, decimal_places=0, read_only = True)
-    date_payement = serializers.DecimalField(max_digits=10, decimal_places=0)
+    date_payement = serializers.DateField()
     montant_restant = serializers.DecimalField(max_digits=10, decimal_places=0)
-    contact = serializers.CharField(allow_blank = True)
-    adress = serializers.CharField(allow_blank = True)
+    contact = serializers.CharField(allow_blank = True, required = False)
+    adress = serializers.CharField(allow_blank = True, required = False)
     reglements = serializers.SerializerMethodField(read_only = True)
 
     class Meta:
