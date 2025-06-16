@@ -627,7 +627,10 @@ class CancelFacture(GestionnaireEditorMixin, generics.RetrieveDestroyAPIView):
         # else:
         #     return Response({"message": "Impossible d'annuler la facture"}, status=status.HTTP_400_BAD_REQUEST)
 
-    
+class DeleteFacture(generics.DestroyAPIView):
+    queryset = Facture.objects.all()
+    serializer_class = FactureSerialiser
+     
 class ListFacture(generics.ListAPIView, userFactureQs):
     queryset = Facture.objects.all()
     serializer_class = FactureSerialiser
