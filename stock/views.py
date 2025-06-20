@@ -285,6 +285,11 @@ class SellBulkProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                 facture.prix_total =  prix_gros 
                 facture.client = client
                 facture.save()
+                Reglement.objects.create(
+                    content_type=ContentType.objects.get_for_model(facture),
+                    object_id=facture.id,
+                    montant=montantPaye
+                )
                 
                 if len(venteInstancList) > 0:
                     VenteProduct.objects.bulk_create(venteInstancList)
@@ -642,7 +647,7 @@ class DemandeAnnulationFactureView(VendeurEditorMixin, generics.UpdateAPIView):
 
     def patch(self, request, *args, **kwargs):
         facture = self.get_object()
-        facture.demande_annulation = True
+        facture.demande_annulation = not facture.demande_annulation
         facture.save()
         return Response({"detail": "Demande d'annulation envoyée."})
 
