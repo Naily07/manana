@@ -217,9 +217,10 @@ class SellBulkProduct(VendeurEditorMixin, generics.ListCreateAPIView):
         client = datas.get('client', "")
         montantPaye = datas.get('montant_paye', None)
         remarque = datas.get('remarque', "")
+        refClient = datas.get('ref_client', "")
         datePayement = datas.get('date_payement', None)
                     
-        venteList = datas.get("ventes", None)
+        venteList = datas.get("ventes", [])
         venteInstancList = []
         
         try:
@@ -284,6 +285,7 @@ class SellBulkProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                 facture.remarque = remarque
                 facture.prix_total =  prix_gros 
                 facture.client = client
+                facture.ref_client = refClient
                 facture.save()
                 Reglement.objects.create(
                     content_type=ContentType.objects.get_for_model(facture),
@@ -649,7 +651,7 @@ class DemandeAnnulationFactureView(VendeurEditorMixin, generics.UpdateAPIView):
         facture = self.get_object()
         facture.demande_annulation = not facture.demande_annulation
         facture.save()
-        return Response({"detail": "Demande d'annulation envoyée."})
+        return Response({"detail": "Demande d'annulation retiré." if facture.demande_annulation else "Demande d'annulation envoyée."})
 
 class UpdateFacture(generics.RetrieveUpdateAPIView):
     queryset = Facture.objects.all()

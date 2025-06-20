@@ -58,6 +58,7 @@ class Facture(models.Model):
     demande_annulation = models.BooleanField(default=False, blank=True)
     remarque = models.CharField(max_length=255, default="", blank=True)
     client = models.CharField(max_length=20, default="", blank=True)
+    ref_client = models.CharField(max_length=10, default="", blank=True)
     owner = models.ForeignKey(CustomUser, default=1, on_delete=models.CASCADE, related_name="%(class)s_related")
     reglements = GenericRelation(Reglement)
 
