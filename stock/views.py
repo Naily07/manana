@@ -386,7 +386,11 @@ class CreateFilAttenteProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                 filAttente.prix_total =  prix_gros
                 filAttente.client = client
                 filAttente.save()
-
+                Reglement.objects.create(
+                    content_type=ContentType.objects.get_for_model(filAttente),
+                    object_id=filAttente.id,
+                    montant=montantPaye
+                )
                 # print("VenteList", venteInstancList)
                 
                 if len(venteInstancList) > 0:
