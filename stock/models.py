@@ -148,7 +148,9 @@ class FilAttenteProduct(models.Model):
         if(id):
             with transaction.atomic():
                 filAttente = FilAttenteProduct.objects.get(id=id)
-                regelements = filAttente.reglement.all()
+                print("FIL", filAttente)
+                fil_attente_ct = ContentType.objects.get_for_model(FilAttenteProduct)
+                regelements = Reglement.objects.filter(object_id = id, content_type=fil_attente_ct,)
                 print('REGLEMENT', regelements)
                 allVenteProduct = filAttente.venteproduct_related.all()
                 facture = Facture(
