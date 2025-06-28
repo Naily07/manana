@@ -320,8 +320,9 @@ class CreateFilAttenteProduct(VendeurEditorMixin, generics.ListCreateAPIView):
         user = request.user
             
         client = datas.get('client', "")
-        montantPaye = datas.get('montant_paye', None)
+        montantPaye = datas.get('montant_paye', 0)
         remarque = datas.get('remarque', "")
+        refClient = datas.get('ref_client', "")
         datePayement = datas.get('date_payement', None)
                     
         venteList = datas.get("ventes", None)
@@ -384,6 +385,7 @@ class CreateFilAttenteProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                 filAttente.date_payement = datePayement
                 filAttente.remarque = remarque
                 filAttente.prix_total =  prix_gros
+                filAttente.ref_client = refClient
                 filAttente.client = client
                 filAttente.save()
                 Reglement.objects.create(
@@ -419,7 +421,7 @@ class ValidateFilAttente(VendeurEditorMixin, generics.ListCreateAPIView):
             print("Les ventes", venteList)
             return Response(data=VenteProductSerializer(venteList, many = True).data, status=status.HTTP_201_CREATED)
         except Exception as e:
-            return Response({"message" : f"Erreur {e}"})
+            return Response({"message" : f"Erreur {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class CancelFilAttente(VendeurEditorMixin, generics.RetrieveDestroyAPIView):
     queryset = FilAttenteProduct.objects.all()
