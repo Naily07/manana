@@ -148,6 +148,8 @@ class FilAttenteProduct(models.Model):
         if(id):
             with transaction.atomic():
                 filAttente = FilAttenteProduct.objects.get(id=id)
+                regelements = filAttente.reglement.all()
+                print('REGLEMENT', regelements)
                 allVenteProduct = filAttente.venteproduct_related.all()
                 facture = Facture(
                     prix_total = filAttente.prix_total,
@@ -160,6 +162,13 @@ class FilAttenteProduct(models.Model):
                     owner = filAttente.owner
                 )
                 facture.save()
+                for reglement in regelements:
+                    Reglement.objects.create(
+                        content_type=ContentType.objects.get_for_model(facture),
+                        object_id=facture.id,
+                        montant=reglement.montant
+                    )
+                    reglement.delete()
                 for vente in allVenteProduct:
                     vente.fil_attente = None
                     vente.facture = facture
