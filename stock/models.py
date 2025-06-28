@@ -130,6 +130,7 @@ class FilAttenteProduct(models.Model):
     prix_total = models.DecimalField(max_digits=10, decimal_places=0)
     prix_restant = models.DecimalField(max_digits=10, decimal_places=0)
     client = models.CharField(max_length=20, default="", blank=True)
+    ref_client = models.CharField(max_length=10, default="", blank=True)
     owner = models.ForeignKey(CustomUser, default=1, on_delete=models.CASCADE, related_name="%(class)s_related")
 
     def __str__(self) -> str:
@@ -145,25 +146,27 @@ class FilAttenteProduct(models.Model):
     @transaction.atomic
     def finaliser(self, id):
         if(id):
-            filAttente = FilAttenteProduct.objects.get(id=id)
-            allVenteProduct = filAttente.venteproduct_related.all()
-            facture = Facture(
-                prix_total = filAttente.prix_total,
-                prix_restant = filAttente.prix_restant,
-                montant_paye = filAttente.montant_paye,
-                remarque = filAttente.remarque,
-                date_payement = filAttente.date_payement,
-                client = filAttente.client,
-                owner = filAttente.owner
-            )
-            facture.save()
-            for vente in allVenteProduct:
-                vente.fil_attente = None
-                vente.facture = facture
-                vente.type_transaction = "vente"
-                vente.save()
-            filAttente.delete()
-            return allVenteProduct
+            with transaction.atomic():
+                filAttente = FilAttenteProduct.objects.get(id=id)
+                allVenteProduct = filAttente.venteproduct_related.all()
+                facture = Facture(
+                    prix_total = filAttente.prix_total,
+                    prix_restant = filAttente.prix_restant,
+                    montant_paye = filAttente.montant_paye,
+                    ref_client = filAttente.ref_client,
+                    remarque = filAttente.remarque,
+                    date_payement = filAttente.date_payement,
+                    client = filAttente.client,
+                    owner = filAttente.owner
+                )
+                facture.save()
+                for vente in allVenteProduct:
+                    vente.fil_attente = None
+                    vente.facture = facture
+                    vente.type_transaction = "vente"
+                    vente.save()
+                filAttente.delete()
+                return allVenteProduct
         else:
             raise ValueError("Fil d'attente inexistant")
 
