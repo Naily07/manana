@@ -48,7 +48,6 @@ class CreateBulkStock(GestionnaireEditorMixin, APIView):
                         detail = newProduct.pop('detail')
                         marque = newProduct.pop('marque', None)
                         fournisseur = newProduct.pop('fournisseur')
-                        print("Marque", marque)
 
                         detailInstance, createdD = Detail.objects.get_or_create(
                             designation=detail['designation'], 
@@ -162,12 +161,9 @@ class UpdateProduct(GestionnaireEditorMixin, generics.RetrieveUpdateAPIView):
                 # qte_gros += product.qte_gros
                 # qte_detail += product.qte_detail
                 detailInstance = product.detail
-                print("Designation", detailInstance.designation)
-                print("GROS", qte_gros)
                 request.data['qte_gros'] = qte_gros
             else :
                 request.data.pop("qte_gros")
-                print(request.data)
             
         return super().patch(request, *args, **kwargs)
     
@@ -237,7 +233,6 @@ class SellBulkProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                 if not venteList:
                     return Response({"message" : "Aucune vente validé"}, status=status.HTTP_400_BAD_REQUEST)
                 for vente in venteList:
-                    print("Vente", vente)
                     product_id = vente.get('product_id', None)
                     new_prix_vente = vente.get('new_prix_vente', None)
                     try:
@@ -341,7 +336,6 @@ class CreateFilAttenteProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                 if not venteList:
                     return Response({"message" : "Aucune vente validé"}, status=status.HTTP_400_BAD_REQUEST)
                 for vente in venteList:
-                    print("Vente", vente)
                     product_id = vente['product_id']
                     new_prix_vente = vente.get('new_prix_vente', None)
                     try:
@@ -393,10 +387,8 @@ class CreateFilAttenteProduct(VendeurEditorMixin, generics.ListCreateAPIView):
                     object_id=filAttente.id,
                     montant=montantPaye
                 )
-                # print("VenteList", venteInstancList)
                 
                 if len(venteInstancList) > 0:
-                    print("ATO", filAttente.id)
                     VenteProduct.objects.bulk_create(venteInstancList)
                     # filDatas = FilAttenteProduct.objects.filter(id__iexact = filAttente.id).first()
                     filAttentesSerialiser = FilAttenteSerialiser(filAttente).data
@@ -418,7 +410,6 @@ class ValidateFilAttente(VendeurEditorMixin, generics.ListCreateAPIView):
         try:
             filId = kwargs['pk']
             venteList = FilAttenteProduct.finaliser(self, id=filId)
-            print("Les ventes", venteList)
             return Response(data=VenteProductSerializer(venteList, many = True).data, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({"message" : f"Erreur {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -430,7 +421,6 @@ class CancelFilAttente(VendeurEditorMixin, generics.RetrieveDestroyAPIView):
     
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        print("Object to delete", instance)
         listVente = instance.venteproduct_related.all()
         with transaction.atomic():
             try:
@@ -520,7 +510,6 @@ class UpdateFilAttente(VendeurEditorMixin, generics.UpdateAPIView):
                         venteId = vente["id"]
                         venteInstance = VenteProduct.objects.get(id = venteId)
                         product = venteInstance.product
-                        print("Produit", product)
                         newQteGros = int(vente["qte_gros_transaction"])
                         product.qte_gros +=  venteInstance.qte_gros_transaction
                         venteInstance.qte_gros_transaction = newQteGros
@@ -573,7 +562,6 @@ class DeleteVente(VendeurEditorMixin, generics.DestroyAPIView):
                 product.save()
                 facture : Facture = instance.facture
                 filAttente = instance.fil_attente
-                print("Insatance", instance.id)
                 self.perform_destroy(instance)
 
                 if facture:
@@ -619,7 +607,6 @@ class CancelFacture(GestionnaireEditorMixin, generics.RetrieveDestroyAPIView):
     
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        print("Object to delete", instance)
         listVente = instance.venteproduct_related.all()
         # if instance.demande_annulation:
         with transaction.atomic():
@@ -680,10 +667,8 @@ class UpdateFacture(generics.RetrieveUpdateAPIView):
             # Recharger les données mises à jour
             instance.refresh_from_db()
             new_prix_restant = instance.prix_restant
-            print("Facture", new_prix_restant)
             new_prix_restant = instance.prix_restant
             montant_regle = old_prix_restant - new_prix_restant
-            print("montant regele", montant_regle)
             if montant_regle > 0:
                 # Création du règlement (rollback automatique si erreur ici)
                 Reglement.objects.create(
