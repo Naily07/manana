@@ -62,8 +62,8 @@ class CreateBulkStock(GestionnaireEditorMixin, APIView):
                         fournisseurInstance, createdF = Fournisseur.objects.get_or_create(
                             nom=fournisseur['nom'].upper(),
                             defaults={
-                                'adress': fournisseur.get('adress', ''),
-                                'contact': fournisseur.get('contact', '')
+                                'adress': str(fournisseur.get('adress', '')).strip(),
+                                'contact': str(fournisseur.get('contact', '')).strip()  # << conversion ici
                             }
                         )
                         productExist = Product.objects.filter(
