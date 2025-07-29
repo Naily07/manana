@@ -141,8 +141,8 @@ DATABASES = {
 from datetime import timedelta
 SIMPLE_JWT = {
     # "TOKEN_OBTAIN_SERIALIZER": "api.serializers.MyTokenObtainPairSerializer",
-    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
-    "REFRESH_TOKEN_LIFETIME": timedelta(hours=6),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ALGORITHM": "HS256",
     'AUTH_COOKIE': 'access',  # Nom du cookie à envoyer
     'AUTH_COOKIE_REFRESH': 'refresh',  # Nom du cookie à envoyer
