@@ -448,25 +448,18 @@ class UpdateFilAttente(VendeurEditorMixin, generics.UpdateAPIView):
         filId = kwargs['pk']
         
         try:
-            client = None
-            prixRestant = None
             datas = request.data
-            datasCopy = datas.copy()
+            client = datas.get('client', "")
+            montantPaye = datas.get('montant_paye', None)
+                        
+            venteList = datas.get("ventes", [])
             filAttente = FilAttenteProduct.objects.get(id=filId)
-            for item in datasCopy:
-                for key, value in item.items():
-                    if key == "client":
-                        client = value
-                        datas.remove(item)
-                    if key == "prix_restant":
-                        prixRestant = value
-                        datas.remove(item)
                      
             venteInstanceList = []
             newVenteInstanceList = []
             newPrixGrosVenteTotal = 0
             with transaction.atomic():
-                for vente in datas:
+                for vente in venteList:
                     productId = vente.get('product_id', None)
                     new_prix_vente = vente.get('new_prix_vente', None)
                     if productId :
@@ -524,13 +517,16 @@ class UpdateFilAttente(VendeurEditorMixin, generics.UpdateAPIView):
                 filAttente.prix_total =  newPrixGrosVenteTotal
                 if len(venteInstanceList) > 0:
                     VenteProduct.objects.bulk_update(venteInstanceList, fields=["qte_gros_transaction", "date", "prix_total", "prix_vente"])
+                #Mettre a jour le prix Total pour les ventes existants avant(certains modifié)
                 for vente in venteInstanceList:
                     filAttente.prix_total += vente.prix_total
-                if prixRestant:
-                    filAttente.prix_restant = prixRestant
+                #Mettre a jour le prix restant
+                filAttente.montant_paye = montantPaye if montantPaye else filAttente.montant_paye
+                filAttente.prix_restant = filAttente.prix_total - filAttente.montant_paye
                 if client:
-                    filAttente.prix_restant = client
+                    filAttente.client = client
                 filAttente.save()
+                #Tokony misy recalcul prix restant
                 if len(newVenteInstanceList) > 0:
                     VenteProduct.objects.bulk_create(newVenteInstanceList)
             return Response(FilAttenteSerialiser(filAttente).data, status=status.HTTP_205_RESET_CONTENT) 
