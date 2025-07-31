@@ -22,7 +22,6 @@ from rest_framework.exceptions import ValidationError
 class PasswordResetRequestView(APIView):
     def post(self, request, *args, **kwargs):
         datas = request.data
-        print("HOST", request.get_host())
         try:
             newpass = datas['new_password']
             email = datas['email']
@@ -86,15 +85,12 @@ import jwt
 class UpdatePassword(APIView):
     def get(self, request, *args, **kwargs):
         try:
-            # print("ARR", self.args)
-            print("KW", request.query_params.get('token'))
             token = request.query_params.get('token')
             secret_key = config('SECRET_KEY')
             datas = jwt.decode(token, secret_key, algorithms='HS256')
             user = CustomUser.objects.get(email=datas['email'])
             user.set_password(datas['new_pass'])
             user.save()
-            print("Datas", user.password)
             redirect_url = config('FRONTEND_URL')
             # return Response(f"Password reset check {user.check_password('newP')}")
             return redirect(f"{redirect_url}?message=Email mis à jour")
@@ -134,9 +130,7 @@ from django.contrib.auth import authenticate
 class Login(APIView):
     permission_classes = []
     def post(self, request):
-        print(request.data)
         try :
-            print(request)
             username = request.data.get('username')
             password = request.data.get('password')
         except Exception as e:
@@ -144,11 +138,9 @@ class Login(APIView):
         
         # user =  CustomUser.objects.filter(username__iexact = username, password__iexact = password).first() 
         user = authenticate(request, username = username, password =  password)
-        # print("USER", user)
         try :
             if user is None :
                 raise AuthenticationFailed("le compte n'existe pas")
-            # print(user)
             access_token, refresh_token = MyTokenObtainPairSerializer.get_token(user)
             response = Response()
             response.data = {
