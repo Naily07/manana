@@ -26,18 +26,18 @@ class ProductQsField(GenericAPIView):
         try:
             etat = self.kwargs[self.qs_field]
             if etat == "expired":
-                print("exp")
+                # print("exp")
                 today = timezone.now().date()
                 seven_months_from_now = today + timedelta(days=210)
                 # print(seven_months_from_now)
                 qs = Product.objects.filter(date_peremption__lte=seven_months_from_now, date_peremption__gte = timezone.now())
                 return qs
             elif etat == "rupture" :
-                print("RUPTEE")
+                # print("RUPTEE")
                 qs = Product.objects.filter(qte_gros__lte = 50)
                 return qs
         except Exception as e:
-            print(e)
+            # print(e)
             return qs   
     
 class userFactureQs(GenericAPIView):
@@ -58,8 +58,8 @@ class ProprioQueryset(GenericAPIView):
         user = self.request.user
         userType = user.groups.filter(name = 'proprios').exists()
         if userType :
-            print("TYPE", userType)
+            # print("TYPE", userType)
             data = {"is_superuser" : False}
-            print(data)
+            # print(data)
             return qs.filter(**data)
         return qs

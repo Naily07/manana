@@ -4,9 +4,9 @@ class IsGestionnaire(BasePermission):
 
     def has_permission(self, request, view):
         user = request.user
-        print(user.groups.all())
+        # print(user.groups.all())
         if not (user.groups.filter(name='gestionnaires').exists() | user.is_superuser):
-            print("Ok gestionnaire")
+            # print("Ok gestionnaire")
             return False
         else:
             return True
@@ -42,7 +42,7 @@ class IsVendeur(BasePermission):
 
 class IsProprio(BasePermission):
     def has_permission(self, request, view):
-        print("Proppp")
+        # print("Proppp")
         user = request.user
         if not (user.groups.filter(name='proprios').exists() | user.is_superuser):
             return False
