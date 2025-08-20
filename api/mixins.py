@@ -51,7 +51,6 @@ class userFactureQs(GenericAPIView):
               .select_related("owner")  # relation FK -> évite une requête par facture
               .prefetch_related(
                   "venteproduct_related__product__marque",  # ventes + produit + marque
-                  "reglements"  # évite une requête par facture pour reglements
               )
         )
 
