@@ -9,6 +9,7 @@ from .models import *
 from .serialiser import *
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import ValidationError
 
 from api.permissions import IsGestionnaire
@@ -626,10 +627,15 @@ class CancelFacture(GestionnaireEditorMixin, generics.RetrieveDestroyAPIView):
 class DeleteFacture(generics.DestroyAPIView):
     queryset = Facture.objects.all()
     serializer_class = FactureSerialiser
-     
+    
+class FacturePagination(PageNumberPagination):
+    page_size = 50 
+    page_size_query_param = 'page_size'  # optionnel: permet au client de définir le nombre d'objets par page
+    max_page_size = 100  # optionnel: limite max
 class ListFacture(generics.ListAPIView, userFactureQs):
     queryset = Facture.objects.all()
     serializer_class = FactureSerialiser
+    pagination_class = FacturePagination
     # permission_classes = [IsAuthenticated, ]
     
 class DemandeAnnulationFactureView(VendeurEditorMixin, generics.UpdateAPIView):
