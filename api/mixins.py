@@ -43,12 +43,20 @@ class ProductQsField(GenericAPIView):
 class userFactureQs(GenericAPIView):
     
     def get_queryset(self):
-        qs =  super().get_queryset()
+        qs = super().get_queryset()
         user = self.request.user
-        userType = user.groups.filter(name = 'vendeurs').exists()
+        userType = user.groups.filter(name='vendeurs').exists()
+
+        qs = (qs
+              .select_related("owner")  # relation FK -> évite une requête par facture
+              .prefetch_related(
+                  "venteproduct_related__product__marque",  # ventes + produit + marque
+                  "reglements"  # évite une requête par facture pour reglements
+              )
+        )
+
         if userType:
-            data = {"owner" : user}
-            return qs.filter(**data)
+            return qs.filter(owner=user)
         return qs
 
 class ProprioQueryset(GenericAPIView):
