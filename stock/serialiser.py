@@ -196,11 +196,9 @@ class FactureSerialiser(serializers.ModelSerializer):
     
     def get_owner(self, obj):
         owner = CustomUserSerialiser(obj.owner).data
-        print(owner)
         return owner['username']
     
     def get_date(self, obj):
-        print("Formate", obj.formated_date)
         return obj.formated_date
     
     def get_reglements(self, obj):

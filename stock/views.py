@@ -141,7 +141,7 @@ class UpdateProduct(GestionnaireEditorMixin, generics.RetrieveUpdateAPIView):
             qte_gros = int(datas['qte_gros'])
             product = Product.objects.get(pk = datas['pk'])
             prix_gros = datas['prix_gros'] if datas['prix_gros'] else product.prix_gros
-            prix_gros_achat = datas['prix_gros_achat'] if datas['prix_gros_achat'] else product.prix_gros_achat
+            prix_gros_achat = datas['prix_gros_achat'] if datas.get('prix_gros_achat', None) else product.prix_gros_achat
             #Historique De mise a jour de produit
             AjoutStock.objects.create(
                 qte_gros_transaction=qte_gros,
