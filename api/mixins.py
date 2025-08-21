@@ -39,7 +39,9 @@ class ProductQsField(GenericAPIView):
         except Exception as e:
             # print(e)
             return qs   
-    
+
+from django.utils.timezone import now, timedelta,  make_aware, datetime, get_current_timezone
+
 class userFactureQs(GenericAPIView):
     
     def get_queryset(self):
@@ -53,9 +55,63 @@ class userFactureQs(GenericAPIView):
                   "venteproduct_related__product__marque",  # ventes + produit + marque
               )
         )
-
+        params = self.request.query_params
+        
         if userType:
             return qs.filter(owner=user)
+        
+        filtreDict = {}
+        today = datetime.combine(now().date(), datetime.min.time())
+        next_day = today + timedelta(days=1)
+
+        tz = get_current_timezone()
+        today = make_aware(today, timezone=tz)
+        next_day = make_aware(next_day, timezone=tz)
+        start_week = today - timedelta(days=today.weekday())  # lundi de la semaine
+        start_month = today.replace(day=1)
+
+        if 'today' in params:
+            thisDay = params['today'].lower()
+            if thisDay == 'true':
+                qs = qs.filter(date__gte=today, date__lt=next_day)
+
+        if 'week' in params:
+            week = params['week'].lower()
+            if week == 'true':
+                qs = qs.filter(date__gte=start_week)
+
+        if 'month' in params:
+            month = params['month'].lower()
+            if month == 'true':
+                qs = qs.filter(date__gte=start_month)
+
+        if 'date' in params:
+            try:
+                day = datetime.strptime(params['date'], '%Y-%m-%d')
+                next_day = day + timedelta(days=1)
+                qs = qs.filter(date__gte=day, date__lt=next_day)
+            except ValueError:
+                raise ValidationError("Format de date invalide. Utilisez AAAA-MM-JJ")
+        
+        if 'client' in params:
+            qs = qs.filter(client__icontains = params['client'])
+
+        if 'impayee' in params and 'payee' in params:
+            raise ValidationError("Vous ne pouvez pas filtrer à la fois sur payée et impayée.")
+        
+        if 'impayee' in params:
+            impayer_str = params['impayee'].lower()
+            if impayer_str == 'true':
+                filtreDict['prix_restant__gt'] = 0
+
+        if 'payee' in params:
+            payee_str = params['payee'].lower()
+            if payee_str == 'true':
+                # Factures payées => prix_restant = 0
+                filtreDict['prix_restant'] = 0
+        
+        qs = qs.filter(**filtreDict)
+
         return qs
 
 class ProprioQueryset(GenericAPIView):
