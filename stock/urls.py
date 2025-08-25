@@ -11,6 +11,7 @@ urlpatterns = [
     path('update-product/<int:pk>', UpdateProduct.as_view(), name='create-stock'),
 
     path('list-facture', ListFacture.as_view(), name='create-stock'),
+    path('facture/<int:pk>/ventes', ListVenteByFactureView.as_view(), name='vente-produit-par-facture'),
     path('delete-facture/<int:pk>', DeleteFacture.as_view(), name='create-stock'),
     path('update-facture/<int:pk>', UpdateFacture.as_view(), name='update-facture'),
     path('demande-annulation-facture/<int:pk>', DemandeAnnulationFactureView.as_view(), name='update-facture'),

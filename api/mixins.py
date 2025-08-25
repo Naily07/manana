@@ -48,7 +48,7 @@ class userFactureQs(GenericAPIView):
         qs = super().get_queryset()
         user = self.request.user
         userType = user.groups.filter(name='vendeurs').exists()
-
+        qs = qs.order_by("-date")
         qs = (qs
               .select_related("owner")  # relation FK -> évite une requête par facture
               .prefetch_related(
