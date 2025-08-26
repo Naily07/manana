@@ -25,8 +25,6 @@ class CreateDetail(generics.ListCreateAPIView):
 class ListProduct(generics.ListAPIView, ProductQsField):
     queryset = Product.objects.all()
     serializer_class = ProductSerialiser
-    # qs_field_expired = "expired"
-    # qs_rupture = "rupture"
     permission_classes = [IsAuthenticated, ]
 
 class CreateProduct(GestionnaireEditorMixin, generics.CreateAPIView):
