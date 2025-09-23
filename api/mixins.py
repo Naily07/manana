@@ -58,7 +58,7 @@ class userFactureQs(GenericAPIView):
         params = self.request.query_params
         
         if userType:
-            return qs.filter(owner=user)
+            qs=qs.filter(owner=user)
         
         filtreDict = {}
         today = datetime.combine(now().date(), datetime.min.time())
