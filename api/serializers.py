@@ -8,6 +8,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def get_token(cls, user):
         token = super().get_token(user)
         token['username'] = user.username
+        token['id'] = user.pk
         # print(user.groups.all().first())
         token['account_type'] = user.groups.all().first().name
         access_token = token.access_token
