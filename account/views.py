@@ -157,6 +157,20 @@ class Login(APIView):
         except Exception as e:
             raise AuthenticationFailed(f"Login error {e}")
 
+class GetAccount(generics.RetrieveAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerialiser
+    permission_classes = [IsAuthenticated, ]
+    lookup_field = "pk"
+    
+    def get_object(self):
+        user = self.request.user
+        user_id = CustomUser.objects.get(id = user.id).id
+        if user_id == self.kwargs['pk'] or user.is_superuser:
+            return self.request.user
+        else :
+            raise ValidationError({"detail": "Utilisateur Invalide."})
+
 class UpdateAccount(generics.UpdateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerialiser
