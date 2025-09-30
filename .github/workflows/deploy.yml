@@ -25,7 +25,7 @@ jobs:
             **/.git*
             **/.git*/**
             venv/   
-
+            
       - name: Set up SSH
         uses: appleboy/ssh-action@v0.1.8
         with:
@@ -50,7 +50,7 @@ jobs:
             # EOF
 
             # Installer les dépendances depuis le fichier requirements.txt
-            pip install -r /home/digievom/domains/api-manana.digievo.mg/public_html/pharma/pharma/requirements.txt --upgrade
+            pip install -r /home/digievom/domains/api-manana.digievo.mg/public_html/pharma/requirements.txt --upgrade
             
             # Collecter les fichiers statiques
-            python /home/digievom/domains/api-manana.digievo.mg/public_html/pharma/pharma/manage.py collectstatic --noinput
+            python /home/digievom/domains/api-manana.digievo.mg/public_html/pharma/manage.py collectstatic --noinput
