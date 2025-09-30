@@ -12,7 +12,20 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-
+      
+      - name: Deploy to FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ftp.digievo.mg
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./
+          server-dir: domains/api-manana.digievo.mg/public_html/pharma/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            venv/   
+            
       - name: Set up SSH
         uses: appleboy/ssh-action@v0.1.8
         with:
@@ -41,12 +54,3 @@ jobs:
             
             # Collecter les fichiers statiques
             python /home/digievom/domains/api-manana.digievo.mg/public_html/pharma/manage.py collectstatic --noinput
-
-      - name: Deploy to FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ftp.digievo.mg
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./
-          server-dir: domains/api-manana.digievo.mg/public_html/pharma/
