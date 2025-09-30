@@ -179,14 +179,14 @@ class FactureSerialiser(serializers.ModelSerializer):
     prix_restant = serializers.DecimalField(max_digits=10, decimal_places=0)
     montant_paye = serializers.DecimalField(max_digits=10, decimal_places=0, required = False)
     date_payement = serializers.DateField(required = False)
-    ventes = serializers.SerializerMethodField(read_only = True)
+    # ventes = serializers.SerializerMethodField(read_only = True)
     client = serializers.CharField()
     date = serializers.SerializerMethodField(read_only = True)
     owner = serializers.SerializerMethodField(read_only = True)
     reglements = serializers.SerializerMethodField(read_only = True)
     class Meta:
         model = Facture
-        fields = ['pk', 'prix_total', 'prix_restant', 'ventes', 'client', 'date', 'owner', 'reglements', 
+        fields = ['pk', 'prix_total', 'prix_restant', 'client', 'date', 'owner', 'reglements', 
                   'montant_paye', 'date_payement', 'demande_annulation', 'remarque', 'ref_client']
 
     def get_ventes(self, obj):

@@ -25,8 +25,6 @@ class CreateDetail(generics.ListCreateAPIView):
 class ListProduct(generics.ListAPIView, ProductQsField):
     queryset = Product.objects.all()
     serializer_class = ProductSerialiser
-    # qs_field_expired = "expired"
-    # qs_rupture = "rupture"
     permission_classes = [IsAuthenticated, ]
 
 class CreateProduct(GestionnaireEditorMixin, generics.CreateAPIView):
@@ -546,6 +544,12 @@ class ListVente(generics.ListAPIView):
     queryset = VenteProduct.objects.all()
     serializer_class = VenteProductSerializer
 
+class ListVenteByFactureView(generics.ListAPIView):
+    serializer_class = VenteProductSerializer
+
+    def get_queryset(self):
+        facture_id = self.kwargs.get('pk')
+        return VenteProduct.objects.filter(facture = facture_id)
 class DeleteVente(VendeurEditorMixin, generics.DestroyAPIView):
     queryset = VenteProduct.objects.all()
     serializer_class = VenteProductSerializer
